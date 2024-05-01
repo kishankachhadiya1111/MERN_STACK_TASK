@@ -61,7 +61,26 @@ function EditProduct({ params }: { params: { id: string } }) {
     validationSchema: basicSchema,
 
     onSubmit: async (values, actions) => {
-      alert("Please update the code.");
+      try {
+        await updateProduct({
+          id,
+          name: values.name,
+          description: values.description,
+          brands: `[${values.brands.map(brand=> brand.value)}]`,
+          colors: values.colors,
+          discount: values.discount,
+          gender: values.gender,
+          occasion: values.occasion.map(e=> e.value).join(","),
+          image_url: values.image_url,
+          old_price: values.old_price,
+          price: values.old_price+((Number(values.old_price)*Number(values.discount))/100),
+          rating: values.rating,
+        },values.categories); 
+        toast.success("Product edited successfully");
+        router.replace('/products');
+      } catch (error) {
+        toast.error("Something went wrong");
+      }
     },
   });
 
@@ -129,7 +148,7 @@ function EditProduct({ params }: { params: { id: string } }) {
         gender: productArr.gender,
         occasion: initialOccasion,
         rating: +productArr.rating,
-        image_url: "",
+        image_url: productArr.image_url,
       };
       setValues(product);
       setInitialValues(product);

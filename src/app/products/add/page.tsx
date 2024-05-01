@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { occasionOptions } from "../../../../constant";
 import Select from "react-select";
+import { saveProducts } from "@/actions/productActions";
+import { toast } from "react-toastify";
 
 function AddProduct() {
   const [brandsOption, setBrandsOption] = useState([]);
@@ -42,7 +44,26 @@ function AddProduct() {
     validationSchema: basicSchema,
 
     onSubmit: async (values: any, actions) => {
-      alert("Please Update the Code");
+      try {
+        await saveProducts({
+          name: values.name,
+          description: values.description,
+          brands: `[${values.brands.map(brand=> brand.value)}]`,
+          colors: values.colors,
+          discount: values.discount,
+          gender: values.gender,
+          occasion: values.occasion.map(e=> e.value).join(","),
+          image_url: values.image_url,
+          old_price: values.old_price,
+          price: values.old_price+((Number(values.old_price)*Number(values.discount))/100),
+          rating: values.rating,
+        }, values.categories);
+  
+        toast.success("Product created successfully");
+        router.replace('/products'); 
+      } catch (error) {
+        toast.error("Something went wrong");
+      }
     },
   });
 

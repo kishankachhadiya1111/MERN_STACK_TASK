@@ -15,15 +15,20 @@ function PaginationSection({
 
   const query = useSearchParams();
   const searchParams = new URLSearchParams(query);
+  const currentPage = Number(searchParams.get('page'))||1;
 
   function handlePrev() {
-    alert("Please update the code.");
+    searchParams.set('page',String(currentPage-1));
+    router.replace('/products?'+searchParams.toString());
   }
 
   function handleNext() {
-    alert("Please update the code.");
+    searchParams.set('page',String(currentPage+1));
+    router.replace('/products?'+searchParams.toString());
   }
-
+  
+  
+  
   return (
     <div className="mt-12 p-4 bg-gray-800 flex justify-center gap-4 items-center mb-8">
       <select
@@ -31,7 +36,8 @@ function PaginationSection({
         name="page-size"
         className="text-black"
         onChange={(e) => {
-          alert("Please update the code.");
+          searchParams.set('pageSize',e.target.value);
+          router.replace('/products?'+searchParams.toString());
         }}
       >
         {["10", "25", "50"].map((val) => {

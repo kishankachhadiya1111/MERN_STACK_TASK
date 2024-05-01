@@ -22,7 +22,6 @@ const discountOptions = [
 function Filter({ categories, brands }) {
   const searchParams = useQueryParams();
   const router = useRouter();
-
   const brandsOption: any[] = useMemo(() => {
     return brands.map((brand: any) => ({
       value: brand.id,
@@ -46,6 +45,24 @@ function Filter({ categories, brands }) {
     });
   }, []);
 
+  const [brandsSelected, setBrandsSelected] = useState(() => {
+    if (searchParams.get("brandId")) {
+      return searchParams
+        .get("brandId")
+        ?.split(",")
+        .map((brandId) => {
+          return {
+            value: +brandId,
+            label: brandsOption.find(
+              (option) => option.value === +brandId
+            ).label,
+          };
+        });
+    } else {
+      return [];
+    }
+  });
+
   const [categoriesSelected, setCategoriesSelected] = useState(() => {
     if (searchParams.get("categoryId")) {
       return searchParams
@@ -63,14 +80,38 @@ function Filter({ categories, brands }) {
       return [];
     }
   });
-  const [selectedGender, setSelectedGender] = useState(
-    () => searchParams.get("gender") || ""
-  );
+
   const [sliderValue, setSliderValue] = useState(
     () => searchParams.get("priceRangeTo") || 2000
   );
 
   const [sliderChanged, setSliderChanged] = useState(false);
+
+  const [selectedGender, setSelectedGender] = useState(
+    () => searchParams.get("gender") || ""
+  );
+
+  const [occasionsSelected, setOccasionsSelected] = useState(() => {
+    if (searchParams.get("occasions")) {
+      return searchParams
+        .get("occasions")
+        ?.split(",")
+        .map((occasions) => {
+          return {
+            value: +occasions,
+            label: occasionOption.find(
+              (option) => option.value === +occasions
+            ).label,
+          };
+        });
+    } else {
+      return [];
+    }
+  });
+
+  const [discountValue, setDiscountValue] = useState(
+    () => searchParams.get("discount")||discountOptions[0]
+  );
 
   const initialDiscountOptions = useMemo(() => {
     if (searchParams.get("discount")) {
@@ -114,57 +155,82 @@ function Filter({ categories, brands }) {
   useEffect(() => {
     if (sliderChanged) {
       const handler = setTimeout(() => {
-        // setSliderValue(tempSliderValue);
         searchParams.delete("page");
         searchParams.delete("pageSize");
         searchParams.set("priceRangeTo", `${sliderValue}`);
         router.push(`/products?${searchParams.toString()}`, { scroll: false });
+        setSliderChanged(false);
       }, 300);
 
       return () => clearTimeout(handler);
     }
   }, [sliderValue]);
-
+ 
   function handleBrandsSelect(e) {
-    alert("Please update the code.");
+    searchParams.delete('brandId');
+    e.forEach(brand => searchParams.append('brandId',brand.value));
+    router.push('/products?'+searchParams.toString());
+    setBrandsSelected(e);
   }
 
   function handleCategoriesSelected(e) {
-    alert("Please update the code.");
+    searchParams.delete('categoryId');
+    e.forEach(category => searchParams.append('categoryId',category.value));
+    router.push('/products?'+searchParams.toString());
+    setCategoriesSelected(e);
   }
 
   function handleSlider(e) {
-    alert("Please update the code.");
+    searchParams.set('priceRangeTo',e.target.value);
+    router.push('/products?'+searchParams.toString());
+    setSliderValue(e.target.value);
+    setSliderChanged(true);
   }
 
   const handleGenderChange = (e) => {
-    alert("Please update the code.");
+    searchParams.set('gender',e.target.value);
+    router.push('/products?'+searchParams.toString());
+    setSelectedGender(e.target.value);
   };
 
   function handleOccasions(e) {
-    alert("Please update the code.");
+    searchParams.delete('occasions');
+    e.forEach(occasion => searchParams.append('occasions',occasion.value));
+    router.push('/products?'+searchParams.toString());
+    setOccasionsSelected(e);
   }
 
   function handleDiscount(e) {
-    alert("Please update the code.");
+    searchParams.set('discount',e.value);
+    router.push('/products?'+searchParams.toString());
+    setDiscountValue(e);
   }
 
-  // function handleClearAll() {
-  //   searchParams.delete("categoryId");
-  //   searchParams.delete("brandId");
-  //   searchParams.delete("priceRangeTo");
-  //   searchParams.delete("gender");
-  //   searchParams.delete("occasions");
-  //   searchParams.delete("discount");
-  //   router.push(`/products?${searchParams.toString()}`);
-  // }
+  function handleClearAll() {
+    searchParams.delete("brandId");
+    searchParams.delete("categoryId");
+    searchParams.delete("priceRangeTo");
+    searchParams.delete("gender");
+    searchParams.delete("occasions");
+    searchParams.delete("discount");
+    resetForm();
+    router.push(`/products?${searchParams.toString()}`);
+  }
 
+  function resetForm(){
+    setBrandsSelected([]);
+    setCategoriesSelected([]);
+    setSliderValue(2000);
+    setSelectedGender("");
+    setOccasionsSelected([]);
+    setDiscountValue("");
+  }
   return (
     <div className="w-full">
-      {/* <button className="bg-white p-2 my-4 text-black" onClick={handleClearAll}>
+      <button className="bg-white p-2 my-4 text-black" onClick={handleClearAll}>
         Clear All
-      </button> */}
-      {/* <p className="text-lg">Filter By</p> */}
+      </button>
+      <p className="text-lg">Filter By</p>
       <div className="w-1/4 flex  items-center gap-4 mb-4">
         <span>Brands</span>
         <Select
@@ -174,6 +240,7 @@ function Filter({ categories, brands }) {
           name="brands"
           onChange={handleBrandsSelect}
           defaultValue={initialBrandOptions}
+          value={brandsSelected as []}
         />
       </div>
       <div className="w-1/3 flex items-center gap-4 mb-4">
@@ -259,6 +326,7 @@ function Filter({ categories, brands }) {
           isMulti
           name="occasion"
           onChange={handleOccasions}
+          value={occasionsSelected as []}
           defaultValue={initialOccasionOptions}
         />
       </div>
@@ -271,6 +339,7 @@ function Filter({ categories, brands }) {
           name="discount"
           defaultValue={initialDiscountOptions}
           onChange={handleDiscount}
+          value={discountValue}
         />
       </div>
     </div>

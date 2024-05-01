@@ -24,7 +24,8 @@ function SortBy() {
         id="sorting"
         value={String(searchParams.get("sortBy"))}
         onChange={(e) => {
-          alert("Please update the code.");
+          searchParams.set('sortBy',e.target.value);
+          router.push(`/products?${searchParams.toString()}`)
         }}
       >
         <option value="">None</option>
